@@ -31,9 +31,18 @@ app.use(limiter);
 
 // Enable CORS
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL
-        : ['http://localhost:5173', 'http://localhost:3000'],
+    origin: (origin, callback) => {
+        if (!origin || process.env.NODE_ENV !== 'production') {
+            return callback(null, true);
+        }
+
+        const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [];
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
